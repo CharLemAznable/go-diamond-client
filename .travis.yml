@@ -2,7 +2,7 @@ language: go
 go:
   - 1.11.x
   - master
-install: go get github.com/CharLemAznable/go_diamond_client
+install: go get github.com/CharLemAznable/go-diamond-client
 script: go test -test.bench=".*" -coverprofile=coverage.txt -covermode=atomic
 after_success:
   - bash <(curl -s https://codecov.io/bash)
