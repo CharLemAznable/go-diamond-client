@@ -27,6 +27,6 @@ func (axis *Axis) GetDataId() string {
     return axis.dataId
 }
 
-func (axis *Axis) ToString() string {
-    return "DiamondAxis{" + "dataId=" + axis.dataId + ", group=" + axis.group + "}"
+func (axis *Axis) String() string {
+    return "DiamondAxis{dataId=" + axis.dataId + ", group=" + axis.group + "}"
 }

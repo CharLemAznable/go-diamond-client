@@ -71,8 +71,7 @@ func (subscriber *subscriberServer) GetSnapshot(axis *Axis) (string, error) {
     }
     content, err := subscriber.snapshot.GetSnapshot(axis)
     if nil != err {
-        _ = LOG.Error("GetSnapshot diamondAxis %s error %s",
-            axis.ToString(), err.Error())
+        _ = LOG.Error("GetSnapshot diamondAxis %s error %s", axis, err.Error())
     } else {
         meta.IncSuccessCounterAndGet()
     }

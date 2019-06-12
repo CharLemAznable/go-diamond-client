@@ -45,8 +45,7 @@ func (snapshot *Snapshot) getFileContent(axis *Axis, extension string) (string, 
 func (snapshot *Snapshot) SaveSnapshot(axis *Axis, content string) error {
     err := snapshot.saveFileContent(axis, content, DiamondStoneExt)
     if nil != err {
-        _ = LOG.Error("save snapshot error %s by %s : %s",
-            axis.ToString(), content, err.Error())
+        _ = LOG.Error("save snapshot error %s by %s : %s", axis, content, err.Error())
     }
     return err
 }
