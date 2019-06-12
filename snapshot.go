@@ -10,8 +10,8 @@ type Snapshot struct {
     dir string
 }
 
-func NewSnapshot(managerConf *ManagerConf) *Snapshot {
-    dir := managerConf.GetFilePath() + Separator + SnapshotDir
+func NewSnapshot(conf *ManagerConf) *Snapshot {
+    dir := conf.GetFilePath() + Separator + SnapshotDir
     err := os.MkdirAll(dir, os.ModePerm)
     if nil != err {
         panic("create Snapshot dir fail " + dir)

@@ -1,7 +1,7 @@
 package diamond_client
 
 import (
-    "github.com/pkg/errors"
+    "errors"
     "sync"
 )
 
@@ -38,7 +38,7 @@ func (mock *mockServer) GetDiamond(axis *Axis) (string, error) {
     if diamond, ok := mock.mocks[*axis]; ok {
         return diamond, nil
     }
-    return "", errors.New("Mock-diamond un-exists")
+    return "", errors.New("mock-diamond un-exists")
 }
 
 func (mock *mockServer) SetDiamond(axis *Axis, info string) {

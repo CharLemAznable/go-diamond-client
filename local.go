@@ -3,10 +3,14 @@ package diamond_client
 import (
     "errors"
     . "github.com/CharLemAznable/gokits"
+    "github.com/radovskyb/watcher"
     "io/ioutil"
     "os"
     "path/filepath"
+    "regexp"
+    "strings"
     "sync"
+    "time"
 )
 
 type Local struct {
@@ -14,10 +18,11 @@ type Local struct {
     mutex               sync.RWMutex
     running             bool
     rootPath            string
+    monitor             *watcher.Watcher
 }
 
 func NewLocal() *Local {
-    return &Local{existFilesTimestamp: make(map[string]int64)}
+    return &Local{existFilesTimestamp: make(map[string]int64), monitor: watcher.New()}
 }
 
 func (local *Local) Start(conf *ManagerConf) {
@@ -49,6 +54,7 @@ func (local *Local) startCheckLocalDir() {
 func (local *Local) index() {
     rootAbs, err := filepath.Abs(local.rootPath)
     if nil != err {
+        _ = LOG.Error("local-diamond index error: ", err)
         return
     }
     _ = filepath.Walk(local.rootPath,
@@ -75,7 +81,51 @@ func (local *Local) index() {
 }
 
 func (local *Local) watchRoot() {
-    // TODO
+    local.monitor.FilterOps(
+        watcher.Create, watcher.Write, watcher.Remove,
+        watcher.Rename, watcher.Chmod, watcher.Move)
+
+    rootAbs, err := filepath.Abs(local.rootPath)
+    if nil != err {
+        _ = LOG.Error("local-diamond watch root error: ", err)
+        return
+    }
+    valid := regexp.MustCompile(rootAbs + ".+\\." + DiamondStoneExt[1:])
+    local.monitor.AddFilterHook(watcher.RegexFilterHook(valid, true))
+    go func() {
+        for {
+            select {
+            case event := <-local.monitor.Event:
+                switch event.Op {
+                case watcher.Create, watcher.Write, watcher.Chmod:
+                    local.existFilesTimestamp[event.Path] = CurrentTimeMillis()
+                case watcher.Remove:
+                    delete(local.existFilesTimestamp, event.Path)
+                case watcher.Rename, watcher.Move:
+                    paths := strings.Split(event.Path, " -> ")
+                    delete(local.existFilesTimestamp, paths[0])
+                    local.existFilesTimestamp[paths[1]] = CurrentTimeMillis()
+                default:
+                    LOG.Debug("unexpected Event: %s", event)
+                }
+            case err := <-local.monitor.Error:
+                _ = LOG.Error("local-diamond monitor error: ", err)
+            case <-local.monitor.Closed:
+                LOG.Info("local-diamond monitor closed")
+                return
+            }
+        }
+    }()
+    if err := local.monitor.AddRecursive(local.rootPath); err != nil {
+        _ = LOG.Error("local-diamond monitor AddRecursive error: ", err)
+        return
+    }
+    go func() {
+        if err := local.monitor.Start(time.Millisecond * 100); err != nil {
+            _ = LOG.Error("local-diamond monitor Start error: ", err)
+        }
+    }()
+    local.monitor.Wait()
 }
 
 func (local *Local) ReadLocal(meta *Meta) (string, error) {
