@@ -1,7 +1,6 @@
 package diamond_client
 
 import (
-    "fmt"
     . "github.com/CharLemAznable/gokits"
 )
 
@@ -28,7 +27,6 @@ func (d *diamond) GetPropertiesOfDefaultGroup(dataId string) (*Properties, error
 }
 
 func (d *diamond) GetString(key string) string {
-    fmt.Printf("%+v", d.miner)
     return d.miner.GetString(key)
 }
 
